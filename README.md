@@ -14,5 +14,3 @@ It takes a 12V input from a standard FRC PDP/PDH (via an internal LM2596 buck co
 *   **Software Ramping:** Slew rate limits prevent sudden current spikes and mechanical damage.
 *   **UI Feedback:** 1.3" OLED display (speed/mode) and dedicated WS2812B status LEDs.
 
-## Note on Wiring
-In the provided wiring diagrams, servo motors are used to illustrate FRC motor controllers. The signal wires are colored Green/Yellow to mimic CAN wiring, but this system outputs **PWM signals** only.
