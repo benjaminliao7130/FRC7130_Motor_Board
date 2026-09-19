@@ -124,7 +124,7 @@ void setup() {
   setupHardwarePWM(); 
 
   display.clearDisplay();
-  display.setTextSize(1);             
+  display.setTextSize(1);              
   display.setTextColor(SH110X_WHITE); 
   display.setCursor(0, 0); 
   display.print(F("FRC 7130 DUAL CTRL"));
@@ -197,26 +197,33 @@ void loop() {
     targetPulseWidth2 = 1500.0 + (speedPercent2 * 5.0 * speedMultiplier);
   }
 
-  // Ramping protection
-  if (currentPulseWidth1 < targetPulseWidth1) { 
-    currentPulseWidth1 += rampStep; 
-    if (currentPulseWidth1 > targetPulseWidth1) currentPulseWidth1 = targetPulseWidth1; 
-  } else if (currentPulseWidth1 > targetPulseWidth1) { 
-    currentPulseWidth1 -= rampStep; 
-    if (currentPulseWidth1 < targetPulseWidth1) currentPulseWidth1 = targetPulseWidth1; 
-  }
+  // === Ramping protection 緩啟動時間控制 ===
+  static unsigned long lastRampTime = 0;
+  const unsigned int RAMP_INTERVAL = 15; // 每 15 毫秒運算一次步進
 
-  if (currentPulseWidth2 < targetPulseWidth2) { 
-    currentPulseWidth2 += rampStep; 
-    if (currentPulseWidth2 > targetPulseWidth2) currentPulseWidth2 = targetPulseWidth2; 
-  } else if (currentPulseWidth2 > targetPulseWidth2) { 
-    currentPulseWidth2 -= rampStep; 
-    if (currentPulseWidth2 < targetPulseWidth2) currentPulseWidth2 = targetPulseWidth2; 
-  }
+  if (millis() - lastRampTime >= RAMP_INTERVAL) {
+    lastRampTime = millis();
 
-  // Write to hardware registers to generate PWM
-  setMotorPWM(1, (int)currentPulseWidth1); 
-  setMotorPWM(2, (int)currentPulseWidth2); 
+    if (currentPulseWidth1 < targetPulseWidth1) { 
+      currentPulseWidth1 += rampStep; 
+      if (currentPulseWidth1 > targetPulseWidth1) currentPulseWidth1 = targetPulseWidth1; 
+    } else if (currentPulseWidth1 > targetPulseWidth1) { 
+      currentPulseWidth1 -= rampStep; 
+      if (currentPulseWidth1 < targetPulseWidth1) currentPulseWidth1 = targetPulseWidth1; 
+    }
+
+    if (currentPulseWidth2 < targetPulseWidth2) { 
+      currentPulseWidth2 += rampStep; 
+      if (currentPulseWidth2 > targetPulseWidth2) currentPulseWidth2 = targetPulseWidth2; 
+    } else if (currentPulseWidth2 > targetPulseWidth2) { 
+      currentPulseWidth2 -= rampStep; 
+      if (currentPulseWidth2 < targetPulseWidth2) currentPulseWidth2 = targetPulseWidth2; 
+    }
+
+    // Write to hardware registers to generate PWM (只在數值更新時寫入)
+    setMotorPWM(1, (int)currentPulseWidth1); 
+    setMotorPWM(2, (int)currentPulseWidth2); 
+  }
 
   int displaySpd1 = map((int)currentPulseWidth1, 1000, 2000, -100, 100);
   int displaySpd2 = map((int)currentPulseWidth2, 1000, 2000, -100, 100);
